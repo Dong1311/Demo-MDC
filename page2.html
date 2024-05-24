@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Page</title>
+</head>
+<body>
+    <h2>Login</h2>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+        <button type="button" onclick="login()">Login</button>
+    </form>
+    <p id="result"></p>
+
+    <script>
+        function login() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => {
+                if (response.status === 429) {
+                    document.getElementById('result').textContent = 'Too many requests, please try again later.';
+                    disableLoginForm(); // Vô hiệu hóa form đăng nhập
+                    return null; // Không xử lý thêm khi biết đã bị rate limit
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    if (data.status === 'success') {
+                        document.getElementById('result').textContent = 'Login successful - User ID: ' + data.userid;
+                    } else {
+                        document.getElementById('result').textContent = 'Invalid username or password';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').textContent = 'Failed to login';
+            });
+        }
+    
+        function disableLoginForm() {
+            document.getElementById('username').disabled = true;
+            document.getElementById('password').disabled = true;
+            document.querySelector('button').disabled = true;
+        }
+    </script>
+    
+    
+    
+</body>
+</html>
